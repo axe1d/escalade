@@ -2,11 +2,11 @@ from flask import Flask, request, jsonify, send_from_directory
 import csv
 from uuid import uuid4
 
-app = Flask(__name__, static_folder='escalade/build', static_url_path='/')
+app = Flask(__name__, static_folder='../build', static_url_path='/')
 
-# @app.route('/')
-# def serve():
-#     return send_from_directory(app.static_folder, 'index.html')
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
 
 def find_user_in_csv(first_name, last_name):
     with open('access_codes.csv', mode='r') as csvfile:
@@ -18,10 +18,10 @@ def find_user_in_csv(first_name, last_name):
 
 
 def remove_first_line(filename):
-    with open(filename, 'r') as file:
+    with open(filename, 'r', newline='') as file:
         lines = file.readlines()  # Read all lines into a list
     # Store the first line if needed
-    first_line = lines[0] if lines else None
+    first_line = lines[0].strip() if lines else None
     # Write back all lines except the first one
     with open(filename, 'w') as file:
         file.writelines(lines[1:])
@@ -39,8 +39,8 @@ def generate_access_code():
         return jsonify({'accessCode': existing_code})
 
     # Create a new access code
-    new_access_code = str(remove_first_line('codes_available.csv'))
-    with open('access_codes.csv', mode='a', newline='') as csvfile:
+    new_access_code = remove_first_line('codes_available.csv')
+    with open('access_codes.csv', mode='a', newline='\n') as csvfile:
         fieldnames = ['first_name', 'last_name', 'access_code']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if csvfile.tell() == 0:
